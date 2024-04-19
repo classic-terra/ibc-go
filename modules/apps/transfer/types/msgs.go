@@ -21,6 +21,9 @@ var (
 	_ legacytx.LegacyMsg = (*MsgTransfer)(nil)
 )
 
+var DefaultMaxReceiverLength = 128
+var DefaultMaxMemoLength = 256
+
 // NewMsgTransfer creates a new MsgTransfer instance
 //
 //nolint:interfacer
@@ -69,6 +72,15 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if !msg.Token.IsPositive() {
 		return sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, msg.Token.String())
 	}
+
+	// Avoid P2P Storm
+	if len(msg.Receiver) > DefaultMaxReceiverLength {
+		return ErrReceiverTooLong
+	}
+	if len(msg.Memo) > DefaultMaxMemoLength {
+		return ErrMemoTooLong
+	}
+
 	// NOTE: sender format must be validated as it is required by the GetSigners function.
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
