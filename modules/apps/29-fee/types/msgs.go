@@ -11,6 +11,8 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 )
 
+const MaximumCounterpartyPayeeLength = 2048 // maximum length of the counterparty payee in bytes (value chosen arbitrarily)
+
 // msg types
 const (
 	TypeMsgPayPacketFee      = "payPacketFee"
@@ -100,6 +102,10 @@ func (msg MsgRegisterCounterpartyPayee) ValidateBasic() error {
 
 	if strings.TrimSpace(msg.CounterpartyPayee) == "" {
 		return ErrCounterpartyPayeeEmpty
+	}
+
+	if len(msg.CounterpartyPayee) > MaximumCounterpartyPayeeLength {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "counterparty payee address must not exceed %d bytes", MaximumCounterpartyPayeeLength)
 	}
 
 	return nil

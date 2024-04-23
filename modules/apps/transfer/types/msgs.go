@@ -14,6 +14,8 @@ import (
 // msg types
 const (
 	TypeMsgTransfer = "transfer"
+	MaximumReceiverLength = 2048  // maximum length of the receiver address in bytes (value chosen arbitrarily)
+	MaximumMemoLength     = 32768 // maximum length of the memo in bytes (value chosen arbitrarily)
 )
 
 var (
@@ -76,6 +78,12 @@ func (msg MsgTransfer) ValidateBasic() error {
 	}
 	if strings.TrimSpace(msg.Receiver) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing recipient address")
+	}
+	if len(msg.Receiver) > MaximumReceiverLength {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "recipient address must not exceed %d bytes", MaximumReceiverLength)
+	}
+	if len(msg.Memo) > MaximumMemoLength {
+		return sdkerrors.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
 	return ValidateIBCDenom(msg.Token.Denom)
 }
